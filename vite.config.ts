@@ -7,6 +7,7 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/easy-count/',
   plugins: [
     VueRouter({
       /* options */
