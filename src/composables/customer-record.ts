@@ -17,7 +17,7 @@ export enum CustomerRecordType {
   Government = 'Government',
 }
 
-export const db = new Dexie('CustomerRecord') as Dexie & {
+export const db = new Dexie('EasyCount') as Dexie & {
   privateCustomerRecords: EntityTable<
     CustomerRecord,
     'id' // primary key "id" (for the typings only)
