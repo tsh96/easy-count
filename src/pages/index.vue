@@ -250,7 +250,7 @@ function submitReplaceCustomerName() {
         Icon(icon="mdi:restore")
         div Restore
     n-divider(vertical)
-    n-button(type="success" @click="showQrCode = true")
+    //- n-button(type="success" @click="showQrCode = true")
       .flex.items-center.space-x-2
         Icon(icon="mdi:qrcode")
         div AI Keyin
