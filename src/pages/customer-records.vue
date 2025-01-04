@@ -16,6 +16,7 @@ const customerRecordType = ref<CustomerRecordType>(CustomerRecordType.Private);
 const customerRecords = ref<CustomerRecord[]>([]);
 const yearFilter = useStorage('yearFilter', new Date().getFullYear())
 const newRecordIds = ref(new Set<number>())
+watch(newRecordIds, () => setTimeout(() => newRecordIds.value = new Set(), 5000))
 
 const filter = ref<{
   invoiceDate?: [number, number]
@@ -39,6 +40,8 @@ async function loadCustomerRecords() {
   customerRecords.value = await dbCustomerRecords.value
     .where("invoiceDate").between(startOfYear, startOfNextYear, true, false)
     .toArray();
+
+  sortCustomerRecords()
 }
 
 watchEffect(loadCustomerRecords)
@@ -228,6 +231,12 @@ function submitReplaceCustomerName() {
   })
 }
 
+function sortCustomerRecords() {
+  customerRecords.value.sort((a, b) => {
+    return a.invoiceDate - b.invoiceDate || a.invoiceNo.localeCompare(b.invoiceNo, undefined, { numeric: true, sensitivity: 'base' })
+  })
+}
+
 </script>
 
 <template lang="pug">
@@ -259,22 +268,29 @@ function submitReplaceCustomerName() {
       n-table.pr-2(size="small" :single-line="false" style="overflow-y: visible;" :bordered="false")
         thead.sticky.top-0.z-10
           tr
-            th.w-52 Date
+            th.w-52
+              .items-center.flex.space-x-1
+                span Date
+                n-tooltip Reload and Sort
+                  template(#trigger)
+                    n-button(text @click="loadCustomerRecords()")
+                      Icon(icon="mdi:refresh")
             th.w-32 Invoice
-            th.flex.items-center Customer Name
-              n-popover(trigger="click")
-                template(#trigger)
-                  n-button(type="warning" text size="small")
-                    Icon.mx-2(icon="mdi:swap-horizontal")
-                n-form(:model="replaceCustomerNameForm" ref="replaceCustomerNameFormRef" size="small" style="width: 800px;")
-                  n-form-item(label="Replace Customer Name" :rule="{ required: true }" path="oldName" )
-                    auto-complete.font-mono(v-model="replaceCustomerNameForm.oldName" size="small" clearable :options="customerNames")
-                  n-form-item(label="With" :rule="{ required: true }" path="newName")
-                    auto-complete.font-mono(v-model="replaceCustomerNameForm.newName" size="small" clearable :options="customerNames")
-                  n-button(type="success" size="small" block @click="submitReplaceCustomerName()" :loading="replacingCustomerName")
-                    .flex.items-center.space-x-2
-                      Icon(icon="mdi:swap-horizontal")
-                      div Replace
+            th
+              .flex.items-center Customer Name
+                n-popover(trigger="click")
+                  template(#trigger)
+                    n-button(type="warning" text size="small")
+                      Icon.mx-2(icon="mdi:swap-horizontal")
+                  n-form(:model="replaceCustomerNameForm" ref="replaceCustomerNameFormRef" size="small" style="width: 800px;")
+                    n-form-item(label="Replace Customer Name" :rule="{ required: true }" path="oldName" )
+                      auto-complete.font-mono(v-model="replaceCustomerNameForm.oldName" size="small" clearable :options="customerNames")
+                    n-form-item(label="With" :rule="{ required: true }" path="newName")
+                      auto-complete.font-mono(v-model="replaceCustomerNameForm.newName" size="small" clearable :options="customerNames")
+                    n-button(type="success" size="small" block @click="submitReplaceCustomerName()" :loading="replacingCustomerName")
+                      .flex.items-center.space-x-2
+                        Icon(icon="mdi:swap-horizontal")
+                        div Replace
             th.w-32 Amount
             th.w-52 Date
             th.w-32 Cheque
@@ -284,7 +300,7 @@ function submitReplaceCustomerName() {
               .flex.place-content-center
                 n-button(text type="success" @click="addCustomerRecord()")
                   Icon(icon="mdi:add")
-          tr
+          tr.th-border-b
             th
               n-date-picker.text-xs(v-model:value="filter.invoiceDate" size="small" type="daterange" format="YY-MM-dd" clearable)
             th
@@ -303,69 +319,70 @@ function submitReplaceCustomerName() {
               n-input(v-model:value="filter.remark" size="small" clearable)
             th
         tbody
-          tr(
-            v-for="record, i in filteredCustomerRecords" 
-            :key="record.id" 
-            :class="{ 'bg-green-300': newRecordIds.has(record.id || 0) }"
-            :ref="(el) => scrollIntoNewRecord(record, el)"
-            )
-            td
-              n-date-picker(v-model:value="record.invoiceDate" size="small" @update:value="saveCustomerRecord(record)")
-            td
-              n-input.font-mono(v-model:value="record.invoiceNo" size="small" @update:value="saveCustomerRecord(record)")
-            td
-              auto-complete.font-mono(v-model="record.customerName" size="small" @update:value="saveCustomerRecord(record)" :options="customerNames" @blur="updateCustomerNames()")
-            td
-              n-input-number.font-mono.text-right(
-                v-model:value="record.invoiceAmount"
-                size="small"
-                :input-props="{ class: record.invoiceAmount == 0 ? '!text-red-400' : '' }"
-                :show-button="false"
-                :precision="2"
-                @update:value="saveCustomerRecord(record)"
-                ) 
-            td
-              n-date-picker(v-model:value="record.chequeDate" size="small" @update:value="saveCustomerRecord(record)")
-            td 
-              n-input.font-mono(v-model:value="record.chequeNo" size="small" @update:value="saveCustomerRecord(record)")
-            td
-              n-popover(trigger="hover" :disabled="!!record.chequeAmount || !record.chequeNo" :arrow="false")
-                template(#trigger)
-                  n-input-number.font-mono.text-right(
-                    v-model:value="record.chequeAmount"
-                    size="small"
-                    :input-props="{ class: record.chequeAmount == 0 ? '!text-gray-400' : record.chequeAmount < record.invoiceAmount ? '!text-red-400' : '!text-green-600' }"
-                    :show-button="false"
-                    :precision="2"
-                    @update:value="saveCustomerRecord(record)"
-                    )
-                n-button(text @click="record.chequeAmount = record.invoiceAmount" size="small")
-                  .font-mono {{ record.invoiceAmount.toFixed(2) }}
-            td
-              n-input.font-mono(v-model:value="record.remark" size="small" @update:value="saveCustomerRecord(record)")
-            td
-              .flex.space-x-2
-                .flex.place-content-center
-                  n-tooltip
-                    div Insert Before
-                    template(#trigger)
-                      n-button(text type="success" @click="insertBeforeCustomerRecord(i)")
-                        Icon(icon="tabler:row-insert-top")
-                .flex.place-content-center
-                  n-tooltip
-                    div Insert After
-                    template(#trigger)
-                      n-button(text type="success" @click="insertAfterCustomerRecord(i)")
-                        Icon(icon="tabler:row-insert-bottom")
-                .flex.place-content-center(v-if="record.id")
-                  n-tooltip
-                    div Delete
-                    template(#trigger)
-                      n-popconfirm(@positive-click="removeCustomerRecord(record.id)") Are you sure to delete this record?
-                        template(#trigger)
-                          n-button(text type="error")
-                            Icon(icon="mdi:delete")
-
+          TransitionGroup(name="list")
+            tr(
+              v-for="record, i in filteredCustomerRecords" 
+              :key="record.id" 
+              :class="{ 'bg-green-300': newRecordIds.has(record.id || 0) }"
+              :ref="(el) => scrollIntoNewRecord(record, el)"
+              )
+              td
+                n-date-picker(v-model:value="record.invoiceDate" size="small" @update:value="saveCustomerRecord(record)")
+              td
+                n-input.font-mono(v-model:value="record.invoiceNo" size="small" @update:value="saveCustomerRecord(record)")
+              td
+                auto-complete.font-mono(v-model="record.customerName" size="small" @update:value="saveCustomerRecord(record)" :options="customerNames" @blur="updateCustomerNames()")
+              td
+                n-input-number.font-mono.text-right(
+                  v-model:value="record.invoiceAmount"
+                  size="small"
+                  :input-props="{ class: record.invoiceAmount == 0 ? '!text-red-400' : '' }"
+                  :show-button="false"
+                  :precision="2"
+                  @update:value="saveCustomerRecord(record)"
+                  ) 
+              td
+                n-date-picker(v-model:value="record.chequeDate" size="small" @update:value="saveCustomerRecord(record)")
+              td 
+                n-input.font-mono(v-model:value="record.chequeNo" size="small" @update:value="saveCustomerRecord(record)")
+              td
+                n-popover(trigger="hover" :disabled="!!record.chequeAmount || !record.chequeNo" :show-arrow="false")
+                  template(#trigger)
+                    n-input-number.font-mono.text-right(
+                      v-model:value="record.chequeAmount"
+                      size="small"
+                      :input-props="{ class: record.chequeAmount == 0 ? '!text-gray-400' : record.chequeAmount < record.invoiceAmount ? '!text-red-400' : '!text-green-600' }"
+                      :show-button="false"
+                      :precision="2"
+                      @update:value="saveCustomerRecord(record)"
+                      )
+                  n-button(text @click="record.chequeAmount = record.invoiceAmount" size="small")
+                    .font-mono {{ record.invoiceAmount.toFixed(2) }}
+              td
+                n-input.font-mono(v-model:value="record.remark" size="small" @update:value="saveCustomerRecord(record)")
+              td
+                .flex.space-x-2
+                  .flex.place-content-center
+                    n-tooltip
+                      div Insert Before
+                      template(#trigger)
+                        n-button(text type="success" @click="insertBeforeCustomerRecord(i)"  tabindex="-1")
+                          Icon(icon="tabler:row-insert-top")
+                  .flex.place-content-center
+                    n-tooltip
+                      div Insert After
+                      template(#trigger)
+                        n-button(text type="success" @click="insertAfterCustomerRecord(i)"  tabindex="-1")
+                          Icon(icon="tabler:row-insert-bottom")
+                  .flex.place-content-center(v-if="record.id")
+                    n-tooltip
+                      div Delete
+                      template(#trigger)
+                        n-popconfirm(@positive-click="removeCustomerRecord(record.id)") Are you sure to delete this record?
+                          template(#trigger)
+                            n-button(text type="error" tabindex="-1")
+                              Icon(icon="mdi:delete")
+          tr.h-96
 n-modal(v-model:show="showQrCode" :mask-closable="false" preset="dialog" :show-icon="false" style="width: calc(100% - 48px);")
   AiKeyin(:customer-names="customerNames" @submit="aiSubmitData")
 </template>
@@ -381,5 +398,24 @@ tr:hover {
   td {
     background-color: rgba(0, 0, 0, 0.1);
   }
+}
+
+tr.th-border-b {
+  th {
+    border-bottom: 2px solid #c1c1c2;
+  }
+}
+
+.list-move,
+/* apply transition to moving elements */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-300px);
 }
 </style>
