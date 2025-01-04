@@ -355,7 +355,7 @@ function triggerAutoInvoiceNo(index: number) {
               :ref="(el) => scrollIntoNewRecord(record, el)"
               )
               td
-                n-date-picker(v-model:value="record.invoiceDate" size="small" @update:value="saveCustomerRecord(record)")
+                n-date-picker(v-model:value="record.invoiceDate" size="small" @update:value="saveCustomerRecord(record)" placement="right")
               td
                 n-popover(trigger="hover" :disabled="!!record.invoiceNo || !triggerAutoInvoiceNo(i)")
                   template(#trigger)
@@ -374,7 +374,7 @@ function triggerAutoInvoiceNo(index: number) {
                   @update:value="saveCustomerRecord(record)"
                   ) 
               td
-                n-date-picker(v-model:value="record.chequeDate" size="small" @update:value="saveCustomerRecord(record)")
+                n-date-picker(v-model:value="record.chequeDate" size="small" @update:value="saveCustomerRecord(record)" placement="right")
               td 
                 n-input.font-mono(v-model:value="record.chequeNo" size="small" @update:value="saveCustomerRecord(record)")
               td
