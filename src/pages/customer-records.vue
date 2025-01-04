@@ -27,6 +27,7 @@ const filter = ref<{
   chequeNo?: string
   chequeAmount?: number
   remark?: string
+  hasNoCheque?: boolean
 }>({})
 
 const dbCustomerRecords = computed(() => {
@@ -55,7 +56,8 @@ const filteredCustomerRecords = computed(() => {
       (!filter.value.chequeDate || (record.chequeDate && record.chequeDate >= filter.value.chequeDate[0] && record.chequeDate <= filter.value.chequeDate[1])) &&
       (!filter.value.chequeNo || record.chequeNo.startsWith(filter.value.chequeNo)) &&
       (!filter.value.chequeAmount || record.chequeAmount === filter.value.chequeAmount) &&
-      (!filter.value.remark || record.remark.includes(filter.value.remark))
+      (!filter.value.remark || record.remark.includes(filter.value.remark)) && 
+      (!filter.value.hasNoCheque || !record.chequeNo)
   })
 })
 
@@ -312,7 +314,14 @@ function triggerAutoInvoiceNo(index: number) {
                         div Replace
             th.w-32 Amount
             th.w-52 Date
-            th.w-32 Cheque
+            th.w-32 
+              .flex.items-center.space-x-1
+                span Cheque
+                n-tooltip Show Records without Cheque
+                  template(#trigger)
+                    n-switch(v-model:value="filter.hasNoCheque")
+                      template(#icon)
+                        Icon(icon="material-symbols:receipt-long-off-rounded")
             th.w-32 Amount
             th.w-32 Remark
             th.w-8
