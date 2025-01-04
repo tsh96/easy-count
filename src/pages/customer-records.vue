@@ -323,7 +323,7 @@ function sortCustomerRecords() {
             tr(
               v-for="record, i in filteredCustomerRecords" 
               :key="record.id" 
-              :class="{ 'bg-green-300': newRecordIds.has(record.id || 0) }"
+              :class="{ 'bg-green-300': newRecordIds.has(record.id || 0), 'bg-yellow-100': !record.chequeNo }"
               :ref="(el) => scrollIntoNewRecord(record, el)"
               )
               td
@@ -388,7 +388,7 @@ n-modal(v-model:show="showQrCode" :mask-closable="false" preset="dialog" :show-i
 </template>
 
 <style lang="scss">
-.bg-green-300 {
+.bg-green-300, .bg-yellow-400 {
   td {
     background-color: inherit;
   }
