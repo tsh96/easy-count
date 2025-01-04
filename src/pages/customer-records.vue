@@ -237,6 +237,25 @@ function sortCustomerRecords() {
   })
 }
 
+const autoInvoiceNo = ref('')
+
+function triggerAutoInvoiceNo(index: number) {
+  autoInvoiceNo.value = ''
+  if (index === 0) return
+  if (index > customerRecords.value.length - 1) return
+  const lastRecord = customerRecords.value[index - 1]
+
+  const lastInvoiceNo = lastRecord.invoiceNo
+  const lastInvoiceNoNumber = parseInt(lastInvoiceNo.replace(/\D/g, ''))
+  const lastInvoiceNoPrefix = lastInvoiceNo.replace(/\d/g, '')
+
+  if (isNaN(lastInvoiceNoNumber)) return
+
+  const nextInvoiceNo = `${lastInvoiceNoPrefix}${lastInvoiceNoNumber + 1}`
+  autoInvoiceNo.value = nextInvoiceNo
+  return nextInvoiceNo
+}
+
 </script>
 
 <template lang="pug">
@@ -329,7 +348,11 @@ function sortCustomerRecords() {
               td
                 n-date-picker(v-model:value="record.invoiceDate" size="small" @update:value="saveCustomerRecord(record)")
               td
-                n-input.font-mono(v-model:value="record.invoiceNo" size="small" @update:value="saveCustomerRecord(record)")
+                n-popover(trigger="hover" :disabled="!!record.invoiceNo || !triggerAutoInvoiceNo(i)")
+                  template(#trigger)
+                    n-input.font-mono(v-model:value="record.invoiceNo" size="small" @update:value="saveCustomerRecord(record)")
+                  n-button(text @click="record.invoiceNo = triggerAutoInvoiceNo(i) || ''; saveCustomerRecord(record)" size="small")
+                    .font-mono {{ triggerAutoInvoiceNo(i) }}
               td
                 auto-complete.font-mono(v-model="record.customerName" size="small" @update:value="saveCustomerRecord(record)" :options="customerNames" @blur="updateCustomerNames()")
               td
@@ -356,7 +379,7 @@ function sortCustomerRecords() {
                       :precision="2"
                       @update:value="saveCustomerRecord(record)"
                       )
-                  n-button(text @click="record.chequeAmount = record.invoiceAmount" size="small")
+                  n-button(text @click="record.chequeAmount = record.invoiceAmount; saveCustomerRecord(record)" size="small")
                     .font-mono {{ record.invoiceAmount.toFixed(2) }}
               td
                 n-input.font-mono(v-model:value="record.remark" size="small" @update:value="saveCustomerRecord(record)")
@@ -388,7 +411,7 @@ n-modal(v-model:show="showQrCode" :mask-closable="false" preset="dialog" :show-i
 </template>
 
 <style lang="scss">
-.bg-green-300, .bg-yellow-400 {
+.bg-green-300, .bg-yellow-100 {
   td {
     background-color: inherit;
   }
