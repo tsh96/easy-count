@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/dist/iconify.js';
-import { useStorage } from '@vueuse/core';
+import { clamp, useStorage } from '@vueuse/core';
 import { endOfDay, format, startOfDay } from 'date-fns';
 import { type ComponentPublicInstance, computed, onMounted, ref, toRaw, watch, watchEffect } from 'vue';
 import AutoComplete from '../components/AutoComplete.vue';
@@ -87,8 +87,9 @@ const customerNameOptions = computed(() => {
 })
 
 function newCustomerRecord(override?: Partial<CustomerRecord>): CustomerRecord {
+  
   const customerRecord: CustomerRecord = {
-    invoiceDate: override?.invoiceDate ?? startOfDay(Date.now()).getTime(),
+    invoiceDate: override?.invoiceDate ?? clamp(startOfDay(Date.now()).getTime(), startOfDay(`${yearFilter.value}-01-01`).getTime(), startOfDay(`${yearFilter.value}-12-31`).getTime()),
     chequeAmount: override?.chequeAmount ?? 0,
     chequeNo: override?.chequeNo ?? '',
     customerName: override?.customerName ?? (filter.value.customerName || ''),
