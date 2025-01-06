@@ -327,8 +327,10 @@ function triggerAutoInvoiceNo(index: number) {
             th.w-32 Remark
             th.w-8
               .flex.place-content-center
-                n-button(text type="success" @click="addCustomerRecord()")
-                  Icon(icon="mdi:add")
+                n-tooltip Add New Record
+                  template(#trigger)
+                    n-button(text type="success" @click="addCustomerRecord()")
+                      Icon(icon="mdi:add")
           tr.th-border-b
             th
               n-date-picker.text-xs(v-model:value="filter.invoiceDate" size="small" type="daterange" format="YY-MM-dd" clearable)
