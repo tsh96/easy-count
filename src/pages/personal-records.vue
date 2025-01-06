@@ -228,59 +228,60 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
             th
             th
         tbody
-          tr(
-            v-for="record, i in filteredTransactions" 
-            :key="record.id" 
-            :class="{ 'bg-green-300': newRecordIds.has(record.id || 0) }"
-            :ref="(el) => scrollIntoNewRecord(record, el)"
-            )
-            td
-              n-date-picker(v-model:value="record.date" size="small" @update:value="saveTransaction(record)")
-            td
-              auto-complete.font-mono(v-model="record.description" size="small" @update:value="saveTransaction(record)" :options="descriptions" @blur="updateDescriptions()")
-            td
-              n-input-number.font-mono.text-right(
-                v-model:value="record.credit"
-                size="small"
-                :input-props="{ class: record.credit == 0 ? '!text-gray-400' : '' }"
-                :show-button="false"
-                :precision="2"
-                @update:value="saveTransaction(record)"
-                ) 
-            td
-              n-input-number.font-mono.text-right(
-                v-model:value="record.debit"
-                size="small"
-                :input-props="{ class: record.debit == 0 ? '!text-gray-400' : '' }"
-                :show-button="false"
-                :precision="2"
-                @update:value="saveTransaction(record)"
-                )
-            td
-              .font-mono.text-right(:class="{ 'text-red-500': accumulated[i] < 0, 'text-green-500': accumulated[i] > 0 }")
-                | {{ accumulated[i] }}
-            td
-              .flex.space-x-2
-                .flex.place-content-center
-                  n-tooltip
-                    div Insert Before
-                    template(#trigger)
-                      n-button(text type="success" @click="insertBeforeTransaction(i)")
-                        Icon(icon="tabler:row-insert-top")
-                .flex.place-content-center
-                  n-tooltip
-                    div Insert After
-                    template(#trigger)
-                      n-button(text type="success" @click="insertAfterTransaction(i)")
-                        Icon(icon="tabler:row-insert-bottom")
-                .flex.place-content-center(v-if="record.id")
-                  n-tooltip
-                    div Delete
-                    template(#trigger)
-                      n-popconfirm(@positive-click="removeTransaction(record.id)") Are you sure to delete this record?
-                        template(#trigger)
-                          n-button(text type="error")
-                            Icon(icon="mdi:delete")
+          TransitionGroup(name="list")
+            tr(
+              v-for="record, i in filteredTransactions" 
+              :key="record.id" 
+              :class="{ 'bg-green-300': newRecordIds.has(record.id || 0) }"
+              :ref="(el) => scrollIntoNewRecord(record, el)"
+              )
+              td
+                n-date-picker(v-model:value="record.date" size="small" @update:value="saveTransaction(record)")
+              td
+                auto-complete.font-mono(v-model="record.description" size="small" @update:value="saveTransaction(record)" :options="descriptions" @blur="updateDescriptions()")
+              td
+                n-input-number.font-mono.text-right(
+                  v-model:value="record.credit"
+                  size="small"
+                  :input-props="{ class: record.credit == 0 ? '!text-gray-400' : '' }"
+                  :show-button="false"
+                  :precision="2"
+                  @update:value="saveTransaction(record)"
+                  ) 
+              td
+                n-input-number.font-mono.text-right(
+                  v-model:value="record.debit"
+                  size="small"
+                  :input-props="{ class: record.debit == 0 ? '!text-gray-400' : '' }"
+                  :show-button="false"
+                  :precision="2"
+                  @update:value="saveTransaction(record)"
+                  )
+              td
+                .font-mono.text-right(:class="{ 'text-red-500': accumulated[i] < 0, 'text-green-500': accumulated[i] > 0 }")
+                  | {{ accumulated[i] }}
+              td
+                .flex.space-x-2
+                  .flex.place-content-center
+                    n-tooltip
+                      div Insert Before
+                      template(#trigger)
+                        n-button(text type="success" @click="insertBeforeTransaction(i)")
+                          Icon(icon="tabler:row-insert-top")
+                  .flex.place-content-center
+                    n-tooltip
+                      div Insert After
+                      template(#trigger)
+                        n-button(text type="success" @click="insertAfterTransaction(i)")
+                          Icon(icon="tabler:row-insert-bottom")
+                  .flex.place-content-center(v-if="record.id")
+                    n-tooltip
+                      div Delete
+                      template(#trigger)
+                        n-popconfirm(@positive-click="removeTransaction(record.id)") Are you sure to delete this record?
+                          template(#trigger)
+                            n-button(text type="error")
+                              Icon(icon="mdi:delete")
           tr.h-96
 </template>
 
@@ -295,5 +296,18 @@ tr:hover {
   td {
     background-color: rgba(0, 0, 0, 0.1);
   }
+}
+
+.list-move,
+/* apply transition to moving elements */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-300px);
 }
 </style>
