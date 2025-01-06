@@ -209,7 +209,13 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
       n-table.pr-2(size="small" :single-line="false" style="overflow-y: visible;" :bordered="false")
         thead.sticky.top-0.z-10
           tr
-            th.w-52 Date
+            th.w-52
+              .items-center.flex.space-x-1
+                span Date
+                n-tooltip Reload and Sort
+                  template(#trigger)
+                    n-button(text @click="loadTransactions()")
+                      Icon(icon="mdi:refresh")
             th Description
             th.w-32 Credit
             th.w-32 Debit
