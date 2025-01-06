@@ -21,26 +21,29 @@ const filter = ref<{
 }>({})
 
 const accumulated = computed(() => {
+  let obj: Record<number, number> = {}
   let sum = 0
-  return transactions.value.map(record => {
+  transactions.value.forEach(record => {
     sum += record.credit - record.debit
-    return sum
+    obj[record.id!] = sum
   })
+  return obj;
 })
 
 async function loadTransactions() {
-  const startOfYear = new Date(`${yearFilter.value}-01-01`).getTime()
-  const startOfNextYear = new Date(`${yearFilter.value + 1}-01-01`).getTime()
-
   transactions.value = await db.transactions
-    .where("date").between(startOfYear, startOfNextYear, true, false)
-    .sortBy("[date+id]");
+    .orderBy('[date+id]')
+    .toArray();
 }
 
 watchEffect(loadTransactions)
 
 const filteredTransactions = computed(() => {
   return transactions.value.filter(record => {
+    const startOfYear = new Date(`${yearFilter.value}-01-01`).getTime()
+    const startOfNextYear = new Date(`${yearFilter.value + 1}-01-01`).getTime()
+    if (record.date < startOfYear || record.date >= startOfNextYear) return false
+
     return (!filter.value.date || (record.date >= filter.value.date[0] && record.date <= endOfDay(filter.value.date[1]).getTime())) &&
       (!filter.value.description || record.description.startsWith(filter.value.description))
   })
@@ -266,8 +269,8 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
                   @update:value="saveTransaction(record)"
                   )
               td
-                .font-mono.text-right(:class="{ 'text-red-500': accumulated[i] < 0, 'text-green-500': accumulated[i] > 0 }")
-                  | {{ accumulated[i] }}
+                .font-mono.text-right(:class="{ 'text-red-500': accumulated[record.id || 0] < 0, 'text-green-500': accumulated[record.id || 0] > 0 }")
+                  | {{ accumulated[record.id || 0] }}
               td
                 .flex.space-x-2
                   .flex.place-content-center
