@@ -264,7 +264,7 @@ function triggerAutoInvoiceNo(index: number) {
 
 <template lang="pug">
 .h-screen.w-screen.overflow-hidden.p-4.flex.flex-col
-  Header(title="Customer Records")
+  Header(page="customer-records")
     .w-52.font-bold
       n-select(v-model:value="customerRecordType" :options="customerRecordTypeOptions")
     n-divider(vertical)

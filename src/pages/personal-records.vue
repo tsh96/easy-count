@@ -189,7 +189,7 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
 
 <template lang="pug">
 .h-screen.w-screen.overflow-hidden.p-4.flex.flex-col
-  Header(title="Personal Records")
+  Header(page="personal-records")
     .flex.items-center.space-x-2
       b Year:
       n-input-number.w-32(v-model:value="yearFilter" size="small" :precision="0")
