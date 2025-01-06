@@ -7,6 +7,7 @@ import AutoComplete from '../components/AutoComplete.vue';
 import AiKeyin from '../components/AiKeyin.vue';
 import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '../composables/customer-record';
 import { type FormInst } from 'naive-ui';
+import Header from '../components/Header.vue';
 
 const showQrCode = ref(false);
 
@@ -56,7 +57,7 @@ const filteredCustomerRecords = computed(() => {
       (!filter.value.chequeDate || (record.chequeDate && record.chequeDate >= filter.value.chequeDate[0] && record.chequeDate <= filter.value.chequeDate[1])) &&
       (!filter.value.chequeNo || record.chequeNo.startsWith(filter.value.chequeNo)) &&
       (!filter.value.chequeAmount || record.chequeAmount === filter.value.chequeAmount) &&
-      (!filter.value.remark || record.remark.includes(filter.value.remark)) && 
+      (!filter.value.remark || record.remark.includes(filter.value.remark)) &&
       (!filter.value.hasNoCheque || !record.chequeNo)
   })
 })
@@ -87,7 +88,7 @@ const customerNameOptions = computed(() => {
 })
 
 function newCustomerRecord(override?: Partial<CustomerRecord>): CustomerRecord {
-  
+
   const customerRecord: CustomerRecord = {
     invoiceDate: override?.invoiceDate ?? clamp(startOfDay(Date.now()).getTime(), startOfDay(`${yearFilter.value}-01-01`).getTime(), startOfDay(`${yearFilter.value}-12-31`).getTime()),
     chequeAmount: override?.chequeAmount ?? 0,
@@ -263,8 +264,7 @@ function triggerAutoInvoiceNo(index: number) {
 
 <template lang="pug">
 .h-screen.w-screen.overflow-hidden.p-4.flex.flex-col
-  .flex.items-center.space-x-4.mb-4
-    .flex.text-2xl.font-bold Customer Records
+  Header(title="Customer Records")
     .w-52.font-bold
       n-select(v-model:value="customerRecordType" :options="customerRecordTypeOptions")
     n-divider(vertical)
@@ -423,7 +423,8 @@ n-modal(v-model:show="showQrCode" :mask-closable="false" preset="dialog" :show-i
 </template>
 
 <style lang="scss">
-.bg-green-300, .bg-yellow-100 {
+.bg-green-300,
+.bg-yellow-100 {
   td {
     background-color: inherit;
   }

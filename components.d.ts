@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AiKeyin: typeof import('./src/components/AiKeyin.vue')['default']
     AutoComplete: typeof import('./src/components/AutoComplete.vue')['default']
+    Header: typeof import('./src/components/Header.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     NAutocomplete: typeof import('naive-ui')['NAutocomplete']
     NAutoComplete: typeof import('naive-ui')['NAutoComplete']
