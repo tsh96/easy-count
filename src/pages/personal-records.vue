@@ -216,8 +216,10 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
             th.w-32 Accumulated
             th.w-8
               .flex.place-content-center
-                n-button(text type="success" @click="addTransaction()")
-                  Icon(icon="mdi:add")
+                n-tooltip Add New record
+                  template(#trigger)
+                    n-button(text type="success" @click="addTransaction()")
+                      Icon(icon="mdi:add")
           tr
             th
               n-date-picker.text-xs(v-model:value="filter.date" size="small" type="daterange" format="YY-MM-dd" clearable)
