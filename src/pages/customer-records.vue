@@ -8,6 +8,7 @@ import AiKeyin from '../components/AiKeyin.vue';
 import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '../composables/customer-record';
 import { type FormInst } from 'naive-ui';
 import Header from '../components/Header.vue';
+import { migrateOldCustomerRecord } from '../composables/old-customer-record';
 
 const showQrCode = ref(false);
 
@@ -80,7 +81,10 @@ async function updateCustomerNames() {
   }
 }
 
-onMounted(() => updateCustomerNames())
+onMounted(async () => {
+  await migrateOldCustomerRecord()
+  updateCustomerNames()
+})
 watch(dbCustomerRecords, () => updateCustomerNames())
 
 const customerNameOptions = computed(() => {

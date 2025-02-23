@@ -5,6 +5,7 @@ import { endOfDay, format, startOfDay } from 'date-fns';
 import { type ComponentPublicInstance, computed, onMounted, ref, toRaw, watch, watchEffect } from 'vue';
 import AutoComplete from '../components/AutoComplete.vue';
 import { backup, type Transaction, db, restore } from '../composables/personal-record';
+import { migrateOldPersonalRecord } from '../composables/old-personal-record';
 
 
 const transactions = ref<Transaction[]>([]);
@@ -72,7 +73,10 @@ async function updateDescriptions() {
   }
 }
 
-onMounted(() => updateDescriptions())
+onMounted(async () => {
+  await migrateOldPersonalRecord()
+  updateDescriptions()
+})
 
 function newTransaction(override?: Partial<Transaction>): Transaction {
   const transaction: Transaction = {
