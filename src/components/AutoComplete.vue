@@ -10,7 +10,9 @@ interface Props {
 
 const props = defineProps<Props>();
 const { modelValue, options } = toRefs(props);
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string): void;
+}>();
 
 const searchQuery = ref(modelValue.value);
 
