@@ -9,6 +9,7 @@ import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '..
 import { type FormInst } from 'naive-ui';
 import Header from '../components/Header.vue';
 import { migrateOldCustomerRecord } from '../composables/old-customer-record';
+import { cloneDeep } from 'lodash'
 
 const showQrCode = ref(false);
 
@@ -50,7 +51,7 @@ async function loadCustomerRecords() {
 watchEffect(loadCustomerRecords)
 
 const filteredCustomerRecords = computed(() => {
-  return customerRecords.value.filter(record => {
+  return cloneDeep(customerRecords.value.filter(record => {
     return (!filter.value.invoiceDate || (record.invoiceDate >= filter.value.invoiceDate[0] && record.invoiceDate <= endOfDay(filter.value.invoiceDate[1]).getTime())) &&
       (!filter.value.invoice || record.invoiceNo.startsWith(filter.value.invoice)) &&
       (!filter.value.customerName || record.customerName === filter.value.customerName) &&
@@ -60,7 +61,7 @@ const filteredCustomerRecords = computed(() => {
       (!filter.value.chequeAmount || record.chequeAmount === filter.value.chequeAmount) &&
       (!filter.value.remark || record.remark.includes(filter.value.remark)) &&
       (!filter.value.hasNoCheque || !record.chequeNo)
-  })
+  }))
 })
 
 const customerNames = ref<string[]>([])
@@ -370,7 +371,13 @@ function triggerAutoInvoiceNo(index: number) {
                   n-button(text @click="record.invoiceNo = triggerAutoInvoiceNo(i) || ''; saveCustomerRecord(record)" size="small")
                     .font-mono {{ triggerAutoInvoiceNo(i) }}
               td
-                auto-complete.font-mono(v-model="record.customerName" size="small" @update:value="saveCustomerRecord(record)" :options="customerNames" @blur="updateCustomerNames()")
+                auto-complete.font-mono(
+                  v-model="record.customerName"
+                  :options="customerNames"
+                  @blur="updateCustomerNames()"
+                  @update:model-value="saveCustomerRecord(record)"
+                  size="small"
+                )
               td
                 n-input-number.font-mono.text-right(
                   v-model:value="record.invoiceAmount"
