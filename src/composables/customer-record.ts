@@ -2,13 +2,13 @@ import Dexie, { type EntityTable } from "dexie";
 
 export interface CustomerRecord {
   id?: number;
-  invoiceDate: number;
+  invoiceDate?: number;
   invoiceNo: string;
   customerName: string;
-  invoiceAmount: number;
+  invoiceAmount?: number;
   chequeDate?: number;
   chequeNo: string;
-  chequeAmount: number;
+  chequeAmount?: number;
   remark: string;
 }
 

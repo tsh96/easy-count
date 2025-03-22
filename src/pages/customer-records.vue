@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/dist/iconify.js';
-import { clamp, useStorage } from '@vueuse/core';
-import { endOfDay, format, startOfDay } from 'date-fns';
+import { useStorage } from '@vueuse/core';
+import { endOfDay, format } from 'date-fns';
 import { type ComponentPublicInstance, computed, onMounted, ref, toRaw, watch, watchEffect } from 'vue';
 import AutoComplete from '../components/AutoComplete.vue';
 import AiKeyin from '../components/AiKeyin.vue';
@@ -9,7 +9,6 @@ import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '..
 import { type FormInst } from 'naive-ui';
 import Header from '../components/Header.vue';
 import { migrateOldCustomerRecord } from '../composables/old-customer-record';
-import { cloneDeep } from 'lodash'
 
 const showQrCode = ref(false);
 
@@ -51,8 +50,8 @@ async function loadCustomerRecords() {
 watchEffect(loadCustomerRecords)
 
 const filteredCustomerRecords = computed(() => {
-  return cloneDeep(customerRecords.value.filter(record => {
-    return (!filter.value.invoiceDate || (record.invoiceDate >= filter.value.invoiceDate[0] && record.invoiceDate <= endOfDay(filter.value.invoiceDate[1]).getTime())) &&
+  return customerRecords.value.filter(record => {
+    return (!filter.value.invoiceDate || !record.invoiceDate || (record.invoiceDate >= filter.value.invoiceDate[0] && record.invoiceDate <= endOfDay(filter.value.invoiceDate[1]).getTime())) &&
       (!filter.value.invoice || record.invoiceNo.startsWith(filter.value.invoice)) &&
       (!filter.value.customerName || record.customerName === filter.value.customerName) &&
       (!filter.value.invoiceAmount || record.invoiceAmount === filter.value.invoiceAmount) &&
@@ -61,7 +60,7 @@ const filteredCustomerRecords = computed(() => {
       (!filter.value.chequeAmount || record.chequeAmount === filter.value.chequeAmount) &&
       (!filter.value.remark || record.remark.includes(filter.value.remark)) &&
       (!filter.value.hasNoCheque || !record.chequeNo)
-  }))
+  })
 })
 
 const customerNames = ref<string[]>([])
@@ -93,14 +92,13 @@ const customerNameOptions = computed(() => {
 })
 
 function newCustomerRecord(override?: Partial<CustomerRecord>): CustomerRecord {
-
   const customerRecord: CustomerRecord = {
-    invoiceDate: override?.invoiceDate ?? clamp(startOfDay(Date.now()).getTime(), startOfDay(`${yearFilter.value}-01-01`).getTime(), startOfDay(`${yearFilter.value}-12-31`).getTime()),
-    chequeAmount: override?.chequeAmount ?? 0,
+    invoiceDate: override?.invoiceDate,
+    chequeAmount: override?.chequeAmount,
     chequeNo: override?.chequeNo ?? '',
     customerName: override?.customerName ?? (filter.value.customerName || ''),
     invoiceNo: override?.invoiceNo ?? '',
-    invoiceAmount: override?.invoiceAmount ?? 0,
+    invoiceAmount: override?.invoiceAmount,
     remark: override?.remark ?? ''
   }
 
@@ -242,7 +240,7 @@ function submitReplaceCustomerName() {
 
 function sortCustomerRecords() {
   customerRecords.value.sort((a, b) => {
-    return a.invoiceDate - b.invoiceDate || a.invoiceNo.localeCompare(b.invoiceNo, undefined, { numeric: true, sensitivity: 'base' })
+    return (a.invoiceDate || Infinity) - (b.invoiceDate || Infinity) || a.invoiceNo.localeCompare(b.invoiceNo, undefined, { numeric: true, sensitivity: 'base' })
   })
 }
 
@@ -397,13 +395,13 @@ function triggerAutoInvoiceNo(index: number) {
                     n-input-number.font-mono.text-right(
                       v-model:value="record.chequeAmount"
                       size="small"
-                      :input-props="{ class: record.chequeAmount == 0 ? '!text-gray-400' : record.chequeAmount < record.invoiceAmount ? '!text-red-400' : '!text-green-600' }"
+                      :input-props="{ class: record.chequeAmount == 0 ? '!text-gray-400' : (record.chequeAmount || 0) < (record.invoiceAmount || 0) ? '!text-red-400' : '!text-green-600' }"
                       :show-button="false"
                       :precision="2"
                       @update:value="saveCustomerRecord(record)"
                       )
                   n-button(text @click="record.chequeAmount = record.invoiceAmount; saveCustomerRecord(record)" size="small")
-                    .font-mono {{ record.invoiceAmount.toFixed(2) }}
+                    .font-mono {{ record.invoiceAmount?.toFixed(2) }}
               td
                 n-input.font-mono(v-model:value="record.remark" size="small" @update:value="saveCustomerRecord(record)")
               td
