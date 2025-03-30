@@ -253,7 +253,7 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
               td
                 n-date-picker(v-model:value="record.date" size="small" @update:value="saveTransaction(record)")
               td
-                auto-complete.font-mono(v-model="record.description" size="small" @update:value="saveTransaction(record)" :options="descriptions" @blur="updateDescriptions()")
+                auto-complete.font-mono(v-model="record.description" size="small" @update:model-value="saveTransaction(record)" :options="descriptions" @blur="updateDescriptions()")
               td
                 n-input-number.font-mono.text-right(
                   v-model:value="record.credit"
