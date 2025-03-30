@@ -108,25 +108,29 @@ async function removeTransaction(id: number) {
   transactions.value = transactions.value.filter(record => record.id !== id)
 }
 
-async function insertAfterTransaction(index: number) {
+async function insertAfterTransaction(transaction: Transaction) {
   const customerRecord: Transaction = newTransaction({
-    date: transactions.value[index].date,
+    date: transaction.date,
   })
 
   await db.transactions.add(customerRecord)
   newRecordIds.value = new Set([customerRecord.id!])
+
+  const index = transactions.value.findIndex(record => record.id === transaction.id)
 
   transactions.value.splice(index + 1, 0, customerRecord)
 }
 
-async function insertBeforeTransaction(index: number) {
+async function insertBeforeTransaction(transaction: Transaction) {
   const customerRecord: Transaction = newTransaction({
-    date: transactions.value[index].date,
+    date: transaction.date,
   })
 
   await db.transactions.add(customerRecord)
 
   newRecordIds.value = new Set([customerRecord.id!])
+
+  const index = transactions.value.findIndex(record => record.id === transaction.id)
 
   transactions.value.splice(index, 0, customerRecord)
 }
@@ -245,7 +249,7 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
         tbody
           TransitionGroup(name="list")
             tr(
-              v-for="record, i in filteredTransactions" 
+              v-for="record in filteredTransactions" 
               :key="record.id" 
               :class="{ 'bg-green-300': newRecordIds.has(record.id || 0) }"
               :ref="(el) => scrollIntoNewRecord(record, el)"
@@ -281,13 +285,13 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
                     n-tooltip
                       div Insert Before
                       template(#trigger)
-                        n-button(text type="success" @click="insertBeforeTransaction(i)")
+                        n-button(text type="success" @click="insertBeforeTransaction(record)")
                           Icon(icon="tabler:row-insert-top")
                   .flex.place-content-center
                     n-tooltip
                       div Insert After
                       template(#trigger)
-                        n-button(text type="success" @click="insertAfterTransaction(i)")
+                        n-button(text type="success" @click="insertAfterTransaction(record)")
                           Icon(icon="tabler:row-insert-bottom")
                   .flex.place-content-center(v-if="record.id")
                     n-tooltip
