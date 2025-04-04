@@ -3,9 +3,9 @@ import { Icon } from '@iconify/vue/dist/iconify.js';
 import { useDebounceFn, useStorage } from '@vueuse/core';
 import { endOfDay, format, startOfDay } from 'date-fns';
 import { type ComponentPublicInstance, computed, onMounted, ref, toRaw, watch, watchEffect } from 'vue';
-import AutoComplete from '../components/AutoComplete.vue';
 import { backup, type Transaction, db, restore } from '../composables/personal-record';
 import { migrateOldPersonalRecord } from '../composables/old-personal-record';
+import PersonalRecordTr from '../components/PersonalRecordTr.vue';
 
 
 const transactions = ref<Transaction[]>([]);
@@ -248,7 +248,21 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
             th
         tbody
           TransitionGroup(name="list")
-            tr(
+            PersonalRecordTr(
+              v-for="record in filteredTransactions" 
+              :key="record.id" 
+              :record="record" 
+              :newRecordIds="newRecordIds" 
+              :accumulated="accumulated" 
+              :scrollIntoNewRecord="scrollIntoNewRecord" 
+              :descriptions="descriptions" 
+              :saveTransaction="saveTransaction" 
+              :updateDescriptions="updateDescriptions" 
+              :insertBeforeTransaction="insertBeforeTransaction" 
+              :insertAfterTransaction="insertAfterTransaction" 
+              :removeTransaction="removeTransaction"
+            )
+            //- tr(
               v-for="record in filteredTransactions" 
               :key="record.id" 
               :class="{ 'bg-green-300': newRecordIds.has(record.id || 0) }"

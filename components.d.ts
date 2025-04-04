@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AiKeyin: typeof import('./src/components/AiKeyin.vue')['default']
     AutoComplete: typeof import('./src/components/AutoComplete.vue')['default']
+    CustomerRecordTr: typeof import('./src/components/CustomerRecordTr.vue')['default']
     Header: typeof import('./src/components/Header.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     NAutocomplete: typeof import('naive-ui')['NAutocomplete']
@@ -39,6 +40,7 @@ declare module 'vue' {
     NSwitch: typeof import('naive-ui')['NSwitch']
     NTable: typeof import('naive-ui')['NTable']
     NTooltip: typeof import('naive-ui')['NTooltip']
+    PersonalRecordTr: typeof import('./src/components/PersonalRecordTr.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
