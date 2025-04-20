@@ -63,6 +63,21 @@ const filteredCustomerRecords = computed(() => {
   })
 })
 
+const page = ref(1)
+const pageSize = 25
+const pageCount = computed(() => Math.ceil(filteredCustomerRecords.value.length / pageSize))
+watchEffect(() => {
+  if (page.value > pageCount.value) {
+    page.value = 1
+  }
+})
+const paginatedCustomerRecords = computed(() => {
+  const start = (page.value - 1) * pageSize
+  const end = start + pageSize
+  console.log(start, end)
+  return filteredCustomerRecords.value.slice(start, end)
+})
+
 const customerNames = ref<string[]>([])
 const needUpdateCustomerNames = ref(true)
 
@@ -294,88 +309,92 @@ function triggerAutoInvoiceNo(record: CustomerRecord) {
       .flex.items-center.space-x-2
         Icon(icon="mdi:qrcode")
         div AI Keyin
-  .flex-grow.overflow-hidden.relative.border
-    n-scrollbar
-      n-table.pr-2(size="small" :single-line="false" style="overflow-y: visible;" :bordered="false")
-        thead.sticky.top-0.z-10
-          tr
-            th.w-52
-              .items-center.flex.space-x-1
-                span Date
-                n-tooltip Reload and Sort
-                  template(#trigger)
-                    n-button(text @click="loadCustomerRecords()")
-                      Icon(icon="mdi:refresh")
-            th.w-32 Invoice
-            th
-              .flex.items-center Customer Name
-                n-popover(trigger="click")
-                  template(#trigger)
-                    n-button(type="warning" text size="small")
-                      Icon.mx-2(icon="mdi:swap-horizontal")
-                  n-form(:model="replaceCustomerNameForm" ref="replaceCustomerNameFormRef" size="small" style="width: 800px;")
-                    n-form-item(label="Replace Customer Name" :rule="{ required: true }" path="oldName" )
-                      auto-complete.font-mono(v-model="replaceCustomerNameForm.oldName" size="small" clearable :options="customerNames")
-                    n-form-item(label="With" :rule="{ required: true }" path="newName")
-                      auto-complete.font-mono(v-model="replaceCustomerNameForm.newName" size="small" clearable :options="customerNames")
-                    n-button(type="success" size="small" block @click="submitReplaceCustomerName()" :loading="replacingCustomerName")
-                      .flex.items-center.space-x-2
-                        Icon(icon="mdi:swap-horizontal")
-                        div Replace
-            th.w-32 Amount
-            th.w-52 Date
-            th.w-32 
-              .flex.items-center.space-x-1
-                span Cheque
-                n-tooltip Show Records without Cheque
-                  template(#trigger)
-                    n-switch(v-model:value="filter.hasNoCheque")
-                      template(#icon)
-                        Icon(icon="material-symbols:receipt-long-off-rounded")
-            th.w-32 Amount
-            th.w-32 Remark
-            th.w-8
-              .flex.place-content-center
-                n-tooltip Add New Record
-                  template(#trigger)
-                    n-button(text type="success" @click="addCustomerRecord()")
-                      Icon(icon="mdi:add")
-          tr.th-border-b
-            th
-              n-date-picker.text-xs(v-model:value="filter.invoiceDate" size="small" type="daterange" format="YY-MM-dd" clearable)
-            th
-              n-input(v-model:value="filter.invoice" size="small" clearable)
-            th
-              n-select(v-model:value="filter.customerName" size="small" clearable :options="customerNameOptions" filterable)
-            th
-              n-input-number(v-model:value="filter.invoiceAmount" size="small" :show-button="false" :precision="2" clearable)
-            th
-              n-date-picker(v-model:value="filter.chequeDate" size="small"  format="YY-MM-dd" type="daterange" clearable)
-            th
-              n-input(v-model:value="filter.chequeNo" size="small" clearable)
-            th
-              n-input-number(v-model:value="filter.chequeAmount" size="small" :show-button="false" :precision="2" clearable)
-            th
-              n-input(v-model:value="filter.remark" size="small" clearable)
-            th
-        tbody
-          TransitionGroup(name="list")
-            CustomerRecordTr(
-              v-for="(record) in filteredCustomerRecords"
-              :key="record.id"
-              :record="record"
-              :new-record-ids="newRecordIds"
-              :accumulated="customerRecords"
-              :scroll-into-new-record="scrollIntoNewRecord"
-              :customer-names="customerNames"
-              :save-customer-record="saveCustomerRecord"
-              :insert-before-customer-record="insertBeforeCustomerRecord"
-              :insert-after-customer-record="insertAfterCustomerRecord"
-              :remove-customer-record="removeCustomerRecord"
-              :trigger-auto-invoice-no="triggerAutoInvoiceNo"
-              :update-customer-names="updateCustomerNames"
-            )
-          tr.h-96
+  .flex.flex-col.flex-grow.overflow-hidden.relative.border
+    .flex-grow.overflow-hidden
+      n-scrollbar
+        n-table.pr-2(size="small" :single-line="false" style="overflow-y: visible;" :bordered="false")
+          thead.sticky.top-0.z-10
+            tr
+              th.w-52
+                .items-center.flex.space-x-1
+                  span Date
+                  n-tooltip Reload and Sort
+                    template(#trigger)
+                      n-button(text @click="loadCustomerRecords()")
+                        Icon(icon="mdi:refresh")
+              th.w-32 Invoice
+              th
+                .flex.items-center Customer Name
+                  n-popover(trigger="click")
+                    template(#trigger)
+                      n-button(type="warning" text size="small")
+                        Icon.mx-2(icon="mdi:swap-horizontal")
+                    n-form(:model="replaceCustomerNameForm" ref="replaceCustomerNameFormRef" size="small" style="width: 800px;")
+                      n-form-item(label="Replace Customer Name" :rule="{ required: true }" path="oldName" )
+                        auto-complete.font-mono(v-model="replaceCustomerNameForm.oldName" size="small" clearable :options="customerNames")
+                      n-form-item(label="With" :rule="{ required: true }" path="newName")
+                        auto-complete.font-mono(v-model="replaceCustomerNameForm.newName" size="small" clearable :options="customerNames")
+                      n-button(type="success" size="small" block @click="submitReplaceCustomerName()" :loading="replacingCustomerName")
+                        .flex.items-center.space-x-2
+                          Icon(icon="mdi:swap-horizontal")
+                          div Replace
+              th.w-32 Amount
+              th.w-52 Date
+              th.w-32 
+                .flex.items-center.space-x-1
+                  span Cheque
+                  n-tooltip Show Records without Cheque
+                    template(#trigger)
+                      n-switch(v-model:value="filter.hasNoCheque")
+                        template(#icon)
+                          Icon(icon="material-symbols:receipt-long-off-rounded")
+              th.w-32 Amount
+              th.w-32 Remark
+              th.w-8
+                .flex.place-content-center
+                  n-tooltip Add New Record
+                    template(#trigger)
+                      n-button(text type="success" @click="addCustomerRecord()")
+                        Icon(icon="mdi:add")
+            tr.th-border-b
+              th
+                n-date-picker.text-xs(v-model:value="filter.invoiceDate" size="small" type="daterange" format="YY-MM-dd" clearable)
+              th
+                n-input(v-model:value="filter.invoice" size="small" clearable)
+              th
+                n-select(v-model:value="filter.customerName" size="small" clearable :options="customerNameOptions" filterable)
+              th
+                n-input-number(v-model:value="filter.invoiceAmount" size="small" :show-button="false" :precision="2" clearable)
+              th
+                n-date-picker(v-model:value="filter.chequeDate" size="small"  format="YY-MM-dd" type="daterange" clearable)
+              th
+                n-input(v-model:value="filter.chequeNo" size="small" clearable)
+              th
+                n-input-number(v-model:value="filter.chequeAmount" size="small" :show-button="false" :precision="2" clearable)
+              th
+                n-input(v-model:value="filter.remark" size="small" clearable)
+              th
+          tbody
+            TransitionGroup(name="list")
+              CustomerRecordTr(
+                v-for="(record) in paginatedCustomerRecords"
+                :key="record.id"
+                :record="record"
+                :new-record-ids="newRecordIds"
+                :accumulated="customerRecords"
+                :scroll-into-new-record="scrollIntoNewRecord"
+                :customer-names="customerNames"
+                :save-customer-record="saveCustomerRecord"
+                :insert-before-customer-record="insertBeforeCustomerRecord"
+                :insert-after-customer-record="insertAfterCustomerRecord"
+                :remove-customer-record="removeCustomerRecord"
+                :trigger-auto-invoice-no="triggerAutoInvoiceNo"
+                :update-customer-names="updateCustomerNames"
+              )
+            tr.h-96
+    .flex.justify-center.my-2
+      n-pagination(v-model:page="page" :page-count="pageCount")
+        template(#suffix) Total {{ filteredCustomerRecords.length }} records
 n-modal(v-model:show="showQrCode" :mask-closable="false" preset="dialog" :show-icon="false" style="width: calc(100% - 48px);")
   AiKeyin(:customer-names="customerNames" @submit="aiSubmitData")
 </template>
