@@ -9,7 +9,7 @@ import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '..
 import { type FormInst } from 'naive-ui';
 import Header from '../components/Header.vue';
 import { migrateOldCustomerRecord } from '../composables/old-customer-record';
-import { chain, map } from 'lodash';
+import { map } from 'lodash';
 
 const showQrCode = ref(false);
 
