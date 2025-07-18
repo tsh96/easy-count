@@ -9,6 +9,7 @@ import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '..
 import { type FormInst } from 'naive-ui';
 import Header from '../components/Header.vue';
 import { migrateOldCustomerRecord } from '../composables/old-customer-record';
+import { chain, map } from 'lodash';
 
 const showQrCode = ref(false);
 
@@ -48,6 +49,25 @@ async function loadCustomerRecords() {
 }
 
 watchEffect(loadCustomerRecords)
+
+const customerSummary = computed(() => {
+  const summary: Record<string, number> = {}
+  customerRecords.value.forEach(record => {
+    const customerName = record.customerName || ''
+    if (!summary[customerName]) {
+      summary[customerName] = 0
+    }
+    summary[customerName] += record.invoiceAmount || 0
+  })
+
+  return map(summary, (value, key) => {
+    return { customerName: key, total: +value.toFixed(2) }
+  }).sort((a, b) => {
+    return a.customerName.localeCompare(b.customerName, undefined, { numeric: true, sensitivity: 'base' })
+  })
+})
+
+const showCustomerSummary = ref(false)
 
 const filteredCustomerRecords = computed(() => {
   return customerRecords.value.filter(record => {
@@ -295,6 +315,10 @@ function triggerAutoInvoiceNo(record: CustomerRecord) {
     .flex.items-center.space-x-2
       b Year:
       n-input-number.w-32(v-model:value="yearFilter" size="small" :precision="0")
+    n-button(type="info" @click="showCustomerSummary = true")
+      .flex.items-center.space-x-2
+        Icon(icon="mdi:calendar-month")
+        div Yearly Summary
     .flex-grow
     n-button(type="success" @click="backupToFile()")
       .flex.items-center.space-x-2
@@ -397,6 +421,24 @@ function triggerAutoInvoiceNo(record: CustomerRecord) {
         template(#suffix) Total {{ filteredCustomerRecords.length }} records
 n-modal(v-model:show="showQrCode" :mask-closable="false" preset="dialog" :show-icon="false" style="width: calc(100% - 48px);")
   AiKeyin(:customer-names="customerNames" @submit="aiSubmitData")
+
+n-modal(v-model:show="showCustomerSummary" :mask-closable="false" preset="dialog" :show-icon="false" style="width: calc(100% - 48px);")
+  .p-4
+    .text-lg.font-bold Customer Summary
+    n-table(size="small" :single-line="false")
+      thead.sticky.top-0.z-10
+        tr
+          th Customer Name
+          th Total Amount
+      tbody
+        TransitionGroup(name="list")
+          tr(
+            v-for="summary in customerSummary"
+            :key="summary.customerName"
+            class="bg-green-300 list-move"
+          )
+            td {{ summary.customerName }}
+            td.font-mono.text-right {{ summary.total.toFixed(2) }}
 </template>
 
 <style lang="scss">
