@@ -14,6 +14,7 @@ defineProps<{
   removeCustomerRecord: (id: number) => void
   triggerAutoInvoiceNo: (record: CustomerRecord) => string | undefined
   updateCustomerNames: () => void
+  isDuplicated: boolean
 }>()
 </script>
 
@@ -25,11 +26,19 @@ tr(
   td
     n-date-picker(v-model:value="record.invoiceDate" size="small" @update:value="saveCustomerRecord(record)" placement="right")
   td
-    n-popover(trigger="hover" :disabled="!!record.invoiceNo || !triggerAutoInvoiceNo(record)")
+    n-popover(trigger="hover" :disabled="(!!record.invoiceNo || !triggerAutoInvoiceNo(record)) && !isDuplicated")
       template(#trigger)
-        n-input.font-mono(v-model:value="record.invoiceNo" size="small" @update:value="saveCustomerRecord(record)")
-      n-button(text @click="record.invoiceNo = triggerAutoInvoiceNo(record) || ''; saveCustomerRecord(record)" size="small")
-        .font-mono {{ triggerAutoInvoiceNo(record) }}
+        n-input.font-mono(
+          v-model:value="record.invoiceNo"
+          :input-props="{ class: isDuplicated ? '!text-red-400' : '' }"
+          size="small"
+          @update:value="saveCustomerRecord(record)"
+        )
+      template(v-if="isDuplicated")
+        div Invoice No Duplicated
+      template(v-else)
+        n-button(text @click="record.invoiceNo = triggerAutoInvoiceNo(record) || ''; saveCustomerRecord(record)" size="small")
+          .font-mono {{ triggerAutoInvoiceNo(record) }}
   td
     auto-complete.font-mono(
       v-model="record.customerName"
@@ -89,3 +98,7 @@ tr(
                 n-button(text type="error" tabindex="-1")
                   Icon(icon="mdi:delete")
 </template>
+
+<style scoped lang="scss">
+
+</style>

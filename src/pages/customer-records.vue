@@ -103,6 +103,16 @@ const paginatedCustomerRecords = computed(() => {
   return filteredCustomerRecords.value.slice(start, end)
 })
 
+const duplicatedInvoiceNos = computed(() => {
+  const counts = new Map<string, number>()
+  customerRecords.value.forEach(record => {
+    if (record.invoiceNo) {
+      counts.set(record.invoiceNo, (counts.get(record.invoiceNo) || 0) + 1)
+    }
+  })
+  return new Set(Array.from(counts.entries()).filter(([_, count]) => count > 1).map(([invoiceNo, _]) => invoiceNo))
+})
+
 const customerNames = ref<string[]>([])
 const needUpdateCustomerNames = ref(true)
 
@@ -419,6 +429,7 @@ function triggerAutoInvoiceNo(record: CustomerRecord) {
                 :remove-customer-record="removeCustomerRecord"
                 :trigger-auto-invoice-no="triggerAutoInvoiceNo"
                 :update-customer-names="updateCustomerNames"
+                :is-duplicated="duplicatedInvoiceNos.has(record.invoiceNo || '')"
               )
             tr.h-96
     .flex.justify-center.my-2
