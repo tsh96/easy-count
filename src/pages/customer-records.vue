@@ -9,7 +9,8 @@ import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '..
 import { type FormInst } from 'naive-ui';
 import Header from '../components/Header.vue';
 import { migrateOldCustomerRecord } from '../composables/old-customer-record';
-import { map } from 'lodash';
+import { map, sumBy } from 'lodash';
+import { formatNumber } from '../composables/format-number';
 
 const showQrCode = ref(false);
 
@@ -65,6 +66,10 @@ const customerSummary = computed(() => {
   }).sort((a, b) => {
     return a.customerName.localeCompare(b.customerName, undefined, { numeric: true, sensitivity: 'base' })
   })
+})
+
+const grandTotal = computed(() => {
+  return sumBy(customerSummary.value, summary => summary.total)
 })
 
 const showCustomerSummary = ref(false)
@@ -429,16 +434,17 @@ n-modal(v-model:show="showCustomerSummary" :mask-closable="false" preset="dialog
       thead.sticky.top-0.z-10
         tr
           th Customer Name
-          th Total Amount
+          th Total Amount 
+            .font-mono.float-right.font-bold {{ formatNumber(grandTotal) }}
       tbody
-        TransitionGroup(name="list")
+        TransitionGroup(name="list")  
           tr(
             v-for="summary in customerSummary"
             :key="summary.customerName"
             class="bg-green-300 list-move"
           )
             td {{ summary.customerName }}
-            td.font-mono.text-right {{ summary.total.toFixed(2) }}
+            td.font-mono.text-right {{ formatNumber(summary.total) }}
 </template>
 
 <style lang="scss">
