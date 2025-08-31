@@ -13,7 +13,6 @@ defineProps<{
   insertAfterCustomerRecord: (record: CustomerRecord) => void
   removeCustomerRecord: (id: number) => void
   triggerAutoInvoiceNo: (record: CustomerRecord) => string | undefined
-  updateCustomerNames: () => void
   isDuplicated: boolean
 }>()
 </script>
@@ -43,7 +42,6 @@ tr(
     auto-complete.font-mono(
       v-model="record.customerName"
       :options="customerNames"
-      @blur="updateCustomerNames()"
       @update:model-value="saveCustomerRecord(record)"
       size="small"
     )

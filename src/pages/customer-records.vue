@@ -9,7 +9,7 @@ import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '..
 import { type FormInst } from 'naive-ui';
 import Header from '../components/Header.vue';
 import { migrateOldCustomerRecord } from '../composables/old-customer-record';
-import { map, sumBy } from 'lodash';
+import { map, sumBy, uniq } from 'lodash';
 import { formatNumber } from '../composables/format-number';
 
 const showQrCode = ref(false);
@@ -113,29 +113,13 @@ const duplicatedInvoiceNos = computed(() => {
   return new Set(Array.from(counts.entries()).filter(([_, count]) => count > 1).map(([invoiceNo, _]) => invoiceNo))
 })
 
-const customerNames = ref<string[]>([])
-const needUpdateCustomerNames = ref(true)
-
-async function updateCustomerNames() {
-  if (needUpdateCustomerNames.value) {
-    needUpdateCustomerNames.value = false
-
-    const names = new Set<string>()
-
-    await dbCustomerRecords.value.each(record => {
-      if (record.customerName)
-        names.add(record.customerName)
-    })
-
-    customerNames.value = Array.from(names)
-  }
-}
+const customerNames = computed(() => {
+  return uniq(customerRecords.value.map(record => record.customerName))
+})
 
 onMounted(async () => {
   await migrateOldCustomerRecord()
-  updateCustomerNames()
 })
-watch(dbCustomerRecords, () => updateCustomerNames())
 
 const customerNameOptions = computed(() => {
   return customerNames.value.map(name => ({ label: name, value: name }))
@@ -200,7 +184,6 @@ async function insertBeforeCustomerRecord(record: CustomerRecord) {
 async function saveCustomerRecord(record: CustomerRecord) {
   const original = await dbCustomerRecords.value.get(record.id)
   if (!original) return
-  needUpdateCustomerNames.value = needUpdateCustomerNames.value || original.customerName !== record.customerName
 
   await dbCustomerRecords.value.put(toRaw(record))
 }
@@ -221,8 +204,6 @@ function restoreFromFile() {
     const text = await file.text()
     await restore(text)
     await loadCustomerRecords()
-    needUpdateCustomerNames.value = true
-    await updateCustomerNames()
 
     restoring.value = false
   }
@@ -251,8 +232,6 @@ async function aiSubmitData(records: CustomerRecord[]) {
   await dbCustomerRecords.value.bulkAdd(toRaw(records), { allKeys: true })
 
   await loadCustomerRecords()
-  needUpdateCustomerNames.value = records.some(record => !customerNames.value.some(name => name === record.customerName))
-  await updateCustomerNames()
 }
 
 function scrollIntoNewRecord(record: CustomerRecord, el: Element | ComponentPublicInstance | null) {
@@ -277,8 +256,6 @@ async function replaceCustomerName(oldName: string, newName: string) {
   await dbCustomerRecords.value.where('customerName').equals(oldName).modify({ customerName: newName })
   customerRecords.value = []
   await loadCustomerRecords()
-  needUpdateCustomerNames.value = true
-  await updateCustomerNames()
   replacingCustomerName.value = false
 }
 
@@ -428,7 +405,6 @@ function triggerAutoInvoiceNo(record: CustomerRecord) {
                 :insert-after-customer-record="insertAfterCustomerRecord"
                 :remove-customer-record="removeCustomerRecord"
                 :trigger-auto-invoice-no="triggerAutoInvoiceNo"
-                :update-customer-names="updateCustomerNames"
                 :is-duplicated="duplicatedInvoiceNos.has(record.invoiceNo || '')"
               )
             tr.h-96
