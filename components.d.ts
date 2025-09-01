@@ -16,6 +16,7 @@ declare module 'vue' {
     NAutoComplete: typeof import('naive-ui')['NAutoComplete']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
+    NDataTable: typeof import('naive-ui')['NDataTable']
     NDatepicker: typeof import('naive-ui')['NDatepicker']
     NDatePicker: typeof import('naive-ui')['NDatePicker']
     NDivider: typeof import('naive-ui')['NDivider']

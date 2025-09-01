@@ -113,6 +113,10 @@ const duplicatedInvoiceNos = computed(() => {
   return new Set(Array.from(counts.entries()).filter(([_, count]) => count > 1).map(([invoiceNo, _]) => invoiceNo))
 })
 
+const totalInvoiceAmount = computed(() => sumBy(filteredCustomerRecords.value, 'invoiceAmount') || 0)
+
+const totalChequeAmount = computed(() => sumBy(filteredCustomerRecords.value, 'chequeAmount') || 0)
+
 const customerNames = computed(() => {
   return uniq(customerRecords.value.map(record => record.customerName))
 })
@@ -379,14 +383,14 @@ function triggerAutoInvoiceNo(record: CustomerRecord) {
                 n-input(v-model:value="filter.invoice" size="small" clearable)
               th
                 n-select(v-model:value="filter.customerName" size="small" clearable :options="customerNameOptions" filterable)
-              th
-                n-input-number(v-model:value="filter.invoiceAmount" size="small" :show-button="false" :precision="2" clearable)
+              th(class="!text-right")
+                span.font-mono.font-bold {{ formatNumber(totalInvoiceAmount) }}
               th
                 n-date-picker(v-model:value="filter.chequeDate" size="small"  format="YY-MM-dd" type="daterange" clearable)
               th
                 n-input(v-model:value="filter.chequeNo" size="small" clearable)
-              th
-                n-input-number(v-model:value="filter.chequeAmount" size="small" :show-button="false" :precision="2" clearable)
+              th(class="!text-right")
+                span.font-mono.font-bold {{ formatNumber(totalChequeAmount) }}
               th
                 n-input(v-model:value="filter.remark" size="small" clearable)
               th
