@@ -2,16 +2,15 @@
 import { Icon } from '@iconify/vue/dist/iconify.js';
 import { useStorage } from '@vueuse/core';
 import { endOfDay, format } from 'date-fns';
-import { type ComponentPublicInstance, computed, h, onMounted, ref, toRaw, type VNodeChild, watch, watchEffect } from 'vue';
+import { type ComponentPublicInstance, computed, onMounted, ref, toRaw, watch, watchEffect } from 'vue';
 import AutoComplete from '../components/AutoComplete.vue';
 import AiKeyin from '../components/AiKeyin.vue';
 import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '../composables/customer-record';
-import { NEllipsis, type SelectGroupOption, type SelectOption, type FormInst } from 'naive-ui';
+import { type FormInst } from 'naive-ui';
 import Header from '../components/Header.vue';
 import { migrateOldCustomerRecord } from '../composables/old-customer-record';
 import { map, sumBy, uniq } from 'lodash';
 import { formatNumber } from '../composables/format-number';
-import { type RenderLabel } from 'naive-ui/es/_internal/select-menu/src/interface';
 import { renderLabel } from '../composables/render-label-ellipsis';
 
 const showQrCode = ref(false);
