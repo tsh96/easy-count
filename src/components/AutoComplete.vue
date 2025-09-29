@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, toRefs, computed, watch } from 'vue';
-import { NAutoComplete } from 'naive-ui';
+import { ref, toRefs, computed, watch, h } from 'vue';
+import type { VNodeChild } from 'vue';
+import { NAutoComplete, NEllipsis, SelectGroupOption, SelectOption } from 'naive-ui';
+import { RenderLabel } from 'naive-ui/es/_internal/select-menu/src/interface';
 
 interface Props {
   modelValue: string;
@@ -19,10 +21,28 @@ const filteredOptions = computed(() => {
   if (searchQuery.value === '') {
     return options.value;
   }
-  return options.value.filter((option) => {
-    return option.toLowerCase().includes(searchQuery.value.toLowerCase());
-  });
+
+  const lowerCaseQuery = searchQuery.value.toLowerCase();
+
+  return options.value.filter((option) =>
+    option.toLowerCase().includes(lowerCaseQuery),
+  );
 });
+
+const renderLabel: RenderLabel = (option: SelectOption | SelectGroupOption): VNodeChild => {
+  const rawLabel = option.label ?? option.value ?? '';
+  const label = typeof rawLabel === 'string' ? rawLabel : String(option.value ?? '');
+
+  return h(
+    NEllipsis,
+    {
+      tooltip: true,
+    },
+    {
+      default: () => label,
+    },
+  );
+};
 
 watch(searchQuery, (newValue) => {
   emit('update:modelValue', newValue);
@@ -30,5 +50,9 @@ watch(searchQuery, (newValue) => {
 </script>
 
 <template>
-  <NAutoComplete v-model:value="searchQuery" :options="filteredOptions" />
-</template>
+  <NAutoComplete
+    v-model:value="searchQuery"
+    :options="filteredOptions"
+    :render-label="renderLabel"
+  />
+</template> 

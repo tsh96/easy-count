@@ -2,15 +2,17 @@
 import { Icon } from '@iconify/vue/dist/iconify.js';
 import { useStorage } from '@vueuse/core';
 import { endOfDay, format } from 'date-fns';
-import { type ComponentPublicInstance, computed, onMounted, ref, toRaw, watch, watchEffect } from 'vue';
+import { type ComponentPublicInstance, computed, h, onMounted, ref, toRaw, type VNodeChild, watch, watchEffect } from 'vue';
 import AutoComplete from '../components/AutoComplete.vue';
 import AiKeyin from '../components/AiKeyin.vue';
 import { backup, type CustomerRecord, CustomerRecordType, db, restore } from '../composables/customer-record';
-import { type FormInst } from 'naive-ui';
+import { NEllipsis, type SelectGroupOption, type SelectOption, type FormInst } from 'naive-ui';
 import Header from '../components/Header.vue';
 import { migrateOldCustomerRecord } from '../composables/old-customer-record';
 import { map, sumBy, uniq } from 'lodash';
 import { formatNumber } from '../composables/format-number';
+import { type RenderLabel } from 'naive-ui/es/_internal/select-menu/src/interface';
+import { renderLabel } from '../composables/render-label-ellipsis';
 
 const showQrCode = ref(false);
 
@@ -283,7 +285,7 @@ const autoInvoiceNo = ref('')
 
 function triggerAutoInvoiceNo(record: CustomerRecord) {
   const index = customerRecords.value.findIndex(r => r.id === record.id)
-  
+
   autoInvoiceNo.value = ''
   if (index === 0) return
   if (index > customerRecords.value.length - 1) return
@@ -382,7 +384,7 @@ function triggerAutoInvoiceNo(record: CustomerRecord) {
               th
                 n-input(v-model:value="filter.invoice" size="small" clearable)
               th
-                n-select(v-model:value="filter.customerName" size="small" clearable :options="customerNameOptions" filterable)
+                n-select(v-model:value="filter.customerName" :render-label="renderLabel" size="small" clearable :options="customerNameOptions" filterable)
               th(class="!text-right")
                 span.font-mono.font-bold {{ formatNumber(totalInvoiceAmount) }}
               th

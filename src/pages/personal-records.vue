@@ -6,6 +6,7 @@ import { type ComponentPublicInstance, computed, onMounted, ref, toRaw, watch, w
 import { backup, type Transaction, db, restore } from '../composables/personal-record';
 import { migrateOldPersonalRecord } from '../composables/old-personal-record';
 import PersonalRecordTr from '../components/PersonalRecordTr.vue';
+import { renderLabel } from '../composables/render-label-ellipsis';
 
 
 const transactions = ref<Transaction[]>([]);
@@ -241,7 +242,7 @@ function scrollIntoNewRecord(record: Transaction, el: Element | ComponentPublicI
             th
               n-date-picker.text-xs(v-model:value="filter.date" size="small" type="daterange" format="YY-MM-dd" clearable)
             th
-              n-select(v-model:value="filter.description" size="small" clearable :options="descriptionOptions" filterable)
+              n-select(v-model:value="filter.description" :render-label="renderLabel" size="small" clearable :options="descriptionOptions" filterable)
             th
             th
             th
