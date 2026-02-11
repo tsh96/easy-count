@@ -8,6 +8,7 @@ Modern client-server architecture with production-grade security:
 - **Frontend**: Vue 3 application with TypeScript
 - **Backend**: Golang + Gin framework with JWT authentication
 - **Database**: PostgreSQL (Neon) with connection pooling
+- **Deployment**: Docker support for easy containerized deployment
 
 ## Features
 
@@ -24,7 +25,33 @@ Modern client-server architecture with production-grade security:
 - Backup and restore
 - Multi-user support with data isolation
 
+✅ **Deployment**
+- Docker support (single image with frontend + backend)
+- Multiple cloud platform options
+- Easy local development setup
+
 ## Quick Start
+
+### Option 1: Using Docker (Recommended for Production)
+
+```bash
+# Clone repository
+git clone https://github.com/tsh96/easy-count.git
+cd easy-count
+
+# Set up environment
+cp .env.docker.example .env
+# Edit .env with your DATABASE_URL and JWT_SECRET
+
+# Build and run
+docker-compose up --build
+
+# Access at http://localhost:8080
+```
+
+See [DOCKER.md](DOCKER.md) for complete Docker documentation.
+
+### Option 2: Local Development
 
 ### Prerequisites
 - Go 1.21+
@@ -58,9 +85,43 @@ cp .env.example .env
 go run cmd/api/main.go
 ```
 
+### Option 2: Local Development
+
+**Prerequisites**
+- Go 1.21+
+- Node.js 18+
+- PostgreSQL database (Neon recommended)
+
+**Backend Setup**
+
+1. Navigate to server directory:
+```bash
+cd server
+```
+
+2. Install dependencies:
+```bash
+go mod download
+```
+
+3. Create `.env` file:
+```bash
+cp .env.example .env
+```
+
+4. Configure environment variables:
+   - **DATABASE_URL**: Your Neon PostgreSQL connection string
+   - **JWT_SECRET**: Generate with `openssl rand -base64 32`
+   - **ALLOW_ORIGINS**: Your frontend URL
+
+5. Start server:
+```bash
+go run cmd/api/main.go
+```
+
 Server runs on `http://localhost:3001`
 
-### Frontend Setup
+**Frontend Setup**
 
 1. Return to root directory:
 ```bash
@@ -84,6 +145,37 @@ pnpm dev
 
 Application available at `http://localhost:5173`
 
+## Deployment
+
+### Docker (Recommended)
+
+Single command deployment with Docker:
+```bash
+docker build -t easy-count .
+docker run -p 8080:8080 -e DATABASE_URL="..." -e JWT_SECRET="..." easy-count
+```
+
+See [DOCKER.md](DOCKER.md) for:
+- Docker Compose setup
+- Cloud deployment (Fly.io, Cloud Run, ECS)
+- Production configuration
+- Troubleshooting
+
+### Other Options
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for:
+- Fly.io deployment
+- Railway deployment
+- Traditional VPS
+- Vercel/Netlify (frontend)
+
+## Documentation
+
+- **[DOCKER.md](DOCKER.md)** - Docker deployment guide
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Cloud deployment options
+- **[MIGRATION.md](MIGRATION.md)** - Migration from IndexedDB
+- **[server/README.md](server/README.md)** - API documentation
+
 ## First Use
 
 1. Open `http://localhost:5173`
@@ -105,7 +197,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment options:
 - Fly.io / Railway (Backend)
 - Vercel / Netlify (Frontend)
 - Traditional VPS
-- Docker containers
+- Docker containers (see DOCKER.md)
 
 ## Migration from IndexedDB
 
