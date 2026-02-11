@@ -60,7 +60,7 @@ function createTableAPI(recordType: CustomerRecordType) {
             },
           };
         },
-        between(lower: number, upper: number, includeLower: boolean, includeUpper: boolean) {
+        between(lower: number, upper: number, _includeLower: boolean, _includeUpper: boolean) {
           return {
             async toArray(): Promise<CustomerRecord[]> {
               return apiCall(
@@ -113,7 +113,7 @@ function createTableAPI(recordType: CustomerRecordType) {
       }
     },
 
-    async bulkAdd(records: CustomerRecord[], options?: { allKeys?: boolean }): Promise<void> {
+    async bulkAdd(records: CustomerRecord[], _options?: { allKeys?: boolean }): Promise<void> {
       await apiCall(`/api/customer-records/${recordType}/bulk`, {
         method: 'POST',
         body: JSON.stringify({ records }),
