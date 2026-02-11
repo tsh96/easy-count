@@ -89,6 +89,27 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
+	// Serve static files (frontend)
+	// Check if dist directory exists
+	if _, err := os.Stat("./dist"); err == nil {
+		// Serve static files from dist directory
+		router.Static("/assets", "./dist/assets")
+		router.StaticFile("/favicon.ico", "./dist/favicon.ico")
+		
+		// Serve index.html for all non-API routes (SPA fallback)
+		router.NoRoute(func(c *gin.Context) {
+			// Don't serve index.html for API routes
+			if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
+				c.JSON(404, gin.H{"error": "Not found"})
+				return
+			}
+			c.File("./dist/index.html")
+		})
+		log.Println("Serving static files from ./dist")
+	} else {
+		log.Println("No dist directory found, API-only mode")
+	}
+
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
