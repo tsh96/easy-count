@@ -11,6 +11,7 @@ declare module 'vue' {
     AutoComplete: typeof import('./src/components/AutoComplete.vue')['default']
     CustomerRecordTr: typeof import('./src/components/CustomerRecordTr.vue')['default']
     Header: typeof import('./src/components/Header.vue')['default']
+    NAlert: typeof import('naive-ui')['NAlert']
     NButton: typeof import('naive-ui')['NButton']
     NDatePicker: typeof import('naive-ui')['NDatePicker']
     NDivider: typeof import('naive-ui')['NDivider']

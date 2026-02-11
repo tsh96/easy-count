@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue/dist/iconify.js';
 import { defineProps, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { logout, currentUser } from '../composables/auth'
+
+const router = useRouter()
 
 const props = defineProps<{
   page: 'customer-records' | 'personal-records'
@@ -14,6 +18,11 @@ const title = computed(() => {
       return 'Personal Records'
   }
 })
+
+function handleLogout() {
+  logout()
+  router.push('/auth')
+}
 </script>
 
 <template lang="pug">
@@ -31,4 +40,11 @@ const title = computed(() => {
             Icon(icon="material-symbols:arrow-drop-down")
   n-divider(vertical)
   slot
+  .flex-grow
+  .flex.items-center.space-x-2(v-if="currentUser")
+    span.text-sm.text-gray-600 {{ currentUser.email }}
+    n-button(size="small" type="error" @click="handleLogout")
+      .flex.items-center.space-x-1
+        Icon(icon="mdi:logout")
+        span Logout
 </template>
