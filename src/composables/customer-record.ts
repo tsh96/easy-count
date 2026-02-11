@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+import { apiCall } from './auth';
 
 export interface CustomerRecord {
   id?: number;
@@ -15,24 +15,6 @@ export interface CustomerRecord {
 export enum CustomerRecordType {
   Private = 'Private',
   Government = 'Government',
-}
-
-// API helper function
-async function apiCall(endpoint: string, options?: RequestInit) {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'x-user-id': 'default', // TODO: Replace with actual user authentication
-      ...options?.headers,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API call failed: ${response.statusText}`);
-  }
-
-  return response.json();
 }
 
 // Helper function to create table API
