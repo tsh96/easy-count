@@ -9,22 +9,25 @@ import (
 )
 
 var (
-	visitors = make(map[string]*rate.Limiter)
-	mu       sync.Mutex
+	visitors     = make(map[string]*rate.Limiter)
+	mu           sync.Mutex
+	cleanupOnce  sync.Once
 )
 
 // RateLimit implements rate limiting middleware
 func RateLimit() gin.HandlerFunc {
-	// Clean up old visitors every minute
-	go func() {
-		for {
-			time.Sleep(time.Minute)
-			mu.Lock()
-			// Reset the map periodically to prevent memory leak
-			visitors = make(map[string]*rate.Limiter)
-			mu.Unlock()
-		}
-	}()
+	// Start cleanup goroutine only once
+	cleanupOnce.Do(func() {
+		go func() {
+			for {
+				time.Sleep(time.Minute)
+				mu.Lock()
+				// Reset the map periodically to prevent memory leak
+				visitors = make(map[string]*rate.Limiter)
+				mu.Unlock()
+			}
+		}()
+	})
 
 	return func(c *gin.Context) {
 		ip := c.ClientIP()

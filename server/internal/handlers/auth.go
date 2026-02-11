@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -42,8 +43,8 @@ func (h *Handlers) Register(c *gin.Context) {
 	`, req.Email, hashedPassword).Scan(&user.ID, &user.Email, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
-		// Check for unique constraint violation
-		if err.Error() == "duplicate key value violates unique constraint \"users_email_key\"" {
+		// Check for unique constraint violation using pgx error
+		if strings.Contains(err.Error(), "unique") || strings.Contains(err.Error(), "duplicate") {
 			c.JSON(http.StatusConflict, gin.H{"error": "Email already registered"})
 			return
 		}

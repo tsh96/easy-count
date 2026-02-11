@@ -1,7 +1,6 @@
 import { computed } from 'vue';
 import { useStorage } from '@vueuse/core';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+import { API_BASE_URL } from '../config';
 
 export interface User {
   id: number;
@@ -31,7 +30,7 @@ export function getAuthToken(): string | null {
 }
 
 // API call helper with authentication
-export async function apiCall(endpoint: string, options?: RequestInit) {
+export async function apiCall(endpoint: string, options?: RequestInit, isRetry: boolean = false) {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...options?.headers as Record<string, string>,
@@ -47,11 +46,11 @@ export async function apiCall(endpoint: string, options?: RequestInit) {
     headers,
   });
 
-  // Handle 401 Unauthorized - try to refresh token
-  if (response.status === 401 && refreshToken.value) {
+  // Handle 401 Unauthorized - try to refresh token (only if not already retrying)
+  if (response.status === 401 && refreshToken.value && !isRetry) {
     const refreshed = await tryRefreshToken();
     if (refreshed) {
-      // Retry the original request with new token
+      // Retry the original request with new token (mark as retry to prevent infinite loop)
       headers['Authorization'] = `Bearer ${token.value}`;
       const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
@@ -59,6 +58,11 @@ export async function apiCall(endpoint: string, options?: RequestInit) {
       });
       
       if (!retryResponse.ok) {
+        // If retry also fails, logout
+        if (retryResponse.status === 401) {
+          logout();
+          throw new Error('Session expired. Please login again.');
+        }
         throw new Error(`API call failed: ${retryResponse.statusText}`);
       }
       
