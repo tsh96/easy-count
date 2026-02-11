@@ -75,9 +75,12 @@ export const db = {
     },
 
     async bulkAdd(transactions: Transaction[]): Promise<void> {
-      for (const t of transactions) {
-        await this.add(t);
-      }
+      if (transactions.length === 0) return;
+      
+      await apiCall('/api/transactions/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ transactions }),
+      });
     },
 
     async each(callback: (transaction: Transaction) => void): Promise<void> {

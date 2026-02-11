@@ -14,6 +14,13 @@ app.use(express.json());
 // Initialize database
 await initDatabase();
 
+// TODO: SECURITY WARNING - Implement proper authentication before production deployment
+// The current x-user-id header can be easily spoofed. Consider implementing:
+// - JWT-based authentication
+// - OAuth 2.0 (Google, GitHub, etc.)
+// - Session-based authentication
+// - API key authentication for single-user deployments
+
 // Personal Records (Transactions) endpoints
 app.get('/api/transactions', async (req, res) => {
   try {
@@ -111,6 +118,33 @@ app.delete('/api/transactions/:id', async (req, res) => {
   }
 });
 
+// Bulk transactions endpoint
+app.post('/api/transactions/bulk', async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] || 'default';
+    const { transactions } = req.body;
+    
+    if (!transactions || transactions.length === 0) {
+      return res.json([]);
+    }
+    
+    const results = [];
+    for (const t of transactions) {
+      const result = await sql`
+        INSERT INTO transactions (date, description, credit, debit, user_id)
+        VALUES (${t.date}, ${t.description}, ${t.credit}, ${t.debit}, ${userId})
+        RETURNING id
+      `;
+      results.push(result[0]);
+    }
+    
+    res.json(results);
+  } catch (error) {
+    console.error('Error bulk creating transactions:', error);
+    res.status(500).json({ error: 'Failed to bulk create transactions' });
+  }
+});
+
 // Customer Records endpoints
 app.get('/api/customer-records/:type', async (req, res) => {
   try {
@@ -198,6 +232,11 @@ app.post('/api/customer-records/:type/bulk', async (req, res) => {
     const { type } = req.params;
     const { records } = req.body;
     
+    if (!records || records.length === 0) {
+      return res.json([]);
+    }
+    
+    // Use a transaction for bulk insert
     const results = [];
     for (const record of records) {
       const result = await sql`
@@ -334,12 +373,14 @@ app.post('/api/restore/transactions', async (req, res) => {
     // Clear existing transactions
     await sql`DELETE FROM transactions WHERE user_id = ${userId}`;
     
-    // Insert new transactions
-    for (const t of transactions) {
-      await sql`
-        INSERT INTO transactions (date, description, credit, debit, user_id)
-        VALUES (${t.date}, ${t.description}, ${t.credit}, ${t.debit}, ${userId})
-      `;
+    // Insert new transactions using bulk endpoint logic
+    if (transactions && transactions.length > 0) {
+      for (const t of transactions) {
+        await sql`
+          INSERT INTO transactions (date, description, credit, debit, user_id)
+          VALUES (${t.date}, ${t.description}, ${t.credit}, ${t.debit}, ${userId})
+        `;
+      }
     }
     
     res.json({ success: true });

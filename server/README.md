@@ -60,6 +60,41 @@ Run the production build:
 npm start
 ```
 
+## Security Considerations
+
+⚠️ **IMPORTANT**: The current implementation uses a simple `x-user-id` header for user identification, which is **NOT secure for production use**. This header can be easily spoofed by clients.
+
+### Before Production Deployment:
+
+You must implement proper authentication. Consider these options:
+
+1. **JWT Authentication**:
+   - Use jsonwebtoken package
+   - Implement login/signup endpoints
+   - Verify JWT tokens on each request
+
+2. **OAuth 2.0**:
+   - Integrate with Google, GitHub, or other OAuth providers
+   - Use passport.js for easier integration
+
+3. **Session-Based Authentication**:
+   - Use express-session with secure cookies
+   - Store sessions in Redis or database
+
+4. **API Key (for single-user deployments)**:
+   - Generate a secure API key
+   - Store it in environment variables
+   - Validate on each request
+
+### Additional Security Measures:
+
+- Enable HTTPS in production
+- Implement rate limiting (using express-rate-limit)
+- Add input validation and sanitization
+- Set up CORS properly for your domain only
+- Use helmet.js for security headers
+- Enable SQL injection protection (already handled by parameterized queries)
+
 ## Environment Variables
 
 - `DATABASE_URL` - Neon PostgreSQL connection string (required)
